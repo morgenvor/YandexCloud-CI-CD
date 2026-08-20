@@ -2,3 +2,6 @@
 build
 out
 .gradle*
+.env
+bin/
+*.class
