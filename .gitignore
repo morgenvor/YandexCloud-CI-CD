@@ -5,3 +5,5 @@ out
 .env
 bin/
 *.class
+manifests*
+values*
