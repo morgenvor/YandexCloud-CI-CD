@@ -2,7 +2,7 @@ pipeline {
     agent any
     
     tools {
-        gradle 'gradle-9.9'
+        gradle 'gradle-8.12'
     }
 
     options {
