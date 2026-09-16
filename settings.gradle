@@ -6,4 +6,4 @@ pluginManagement {
     }
 }
 
-rootProject.name = 'docker-exercises-project'
+rootProject.name = 'docker-kubernetes-exercises-project'

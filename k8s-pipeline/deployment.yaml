@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: $K8S_NAME
+  labels:
+    app: $K8S_NAME
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: $K8S_NAME
+  template:
+    metadata:
+      labels:
+        app: $K8S_NAME
+    spec:
+      containers:
+      - name: $K8S_NAME
+        image: cr.yandex/crpm5u802b9d7cp3853s/gradle-app:$IMAGE_NAME
+        ports:
+        - containerPort: 8080
+        env:
+        - name: DB_PWD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: mysql-password
+        - name: DB_USER
+          valueFrom:
+            configMapKeyRef:
+              name: mysql-configmap
+              key: mysql-username
+        - name: DB_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: mysql-configmap
+              key: mysql-database
+        - name: DB_SERVER
+          valueFrom:
+            configMapKeyRef:
+              name: mysql-configmap
+              key: mysql-endpoint
