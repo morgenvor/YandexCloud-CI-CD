@@ -11,6 +11,7 @@ pipeline {
         HELM_REPO_BRANCH = 'main'
         K8S_CLUSTER = 'k8s-cluster'
         K8S_NAMESPACE = 'default'
+        PATH = "/var/jenkins_home/yandex-cloud/bin:${env.PATH}"
     }
 
     options {
@@ -38,7 +39,7 @@ pipeline {
             }
         }
 
-        stage('Build Image') {
+        stage('Build and push Image') {
             steps {
                 script {
                     echo "Building image: ${env.APP_IMAGE}:${env.IMAGE_TAG}"
