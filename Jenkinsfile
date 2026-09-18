@@ -53,7 +53,7 @@ pipeline {
             steps {
                 dir('java-mysql-chart') {
                     deleteDir()
-                    sshagent(credentials: ['github-ssh-key']) {
+                    sshagent(credentials: ['github-shh-key']) {
                         sh "git clone -b ${env.HELM_REPO_BRANCH} ${env.HELM_REPO_URL} ."
                     }
                 }
