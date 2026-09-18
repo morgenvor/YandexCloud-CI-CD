@@ -7,7 +7,7 @@ pipeline {
 
     environment {
         APP_IMAGE = 'cr.yandex/crpm5u802b9d7cp3853s/gradle-app'
-        HELM_REPO_URL = 'https://github.com/morgenvor/java-mysql-chart.git'
+        HELM_REPO_URL = 'git@github.com:morgenvor/java-mysql-chart.git'
         HELM_REPO_BRANCH = 'main'
         K8S_CLUSTER = 'k8s-cluster'
         K8S_NAMESPACE = 'default'
@@ -39,9 +39,6 @@ pipeline {
         }
 
         stage('Build Image') {
-            environment {
-                PATH = "/var/jenkins_home/yandex-cloud/bin:${env.PATH}"
-            }
             steps {
                 script {
                     echo "Building image: ${env.APP_IMAGE}:${env.IMAGE_TAG}"
@@ -55,15 +52,14 @@ pipeline {
             steps {
                 dir('java-mysql-chart') {
                     deleteDir()
-                    git branch: env.HELM_REPO_BRANCH, url: env.HELM_REPO_URL
+                    sshagent(credentials: ['github-ssh-key']) {
+                        sh "git clone -b ${env.HELM_REPO_BRANCH} ${env.HELM_REPO_URL} ."
+                    }
                 }
             }
         }
 
         stage('Deploy') {
-            environment {
-                PATH = "/var/jenkins_home/yandex-cloud/bin:${env.PATH}"
-            }
             steps {
                 script {
                     def kubeconfig = "${env.WORKSPACE}/kubeconfig"
