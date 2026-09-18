@@ -18,7 +18,7 @@ services:
       - mysql-data:/var/lib/mysql
   
   app:
-    image: 158.160.27.10:8082/docker-exercises-project:1.0.1
+    image: cr.yandex/crpm5u802b9d7cp3853s/gradle-app:latest
     ports:
       - "8080:8080"
     environment:

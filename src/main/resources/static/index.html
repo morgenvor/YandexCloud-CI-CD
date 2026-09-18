@@ -27,20 +27,6 @@
     #container {
         display: none;
     }
-    #container-edit {
-        display: none;
-    }
-    #container-edit li {
-        margin: 10px;
-    }
-    #container-edit input {
-        height: 32px;
-        margin-left: 30px;
-    }
-    #container-edit input {
-        width: 195px;
-        font-size: 15px;
-    }
 </style>
 <script>
   (async function init() {
@@ -50,7 +36,6 @@
     console.log("stringified data: " + JSON.stringify(data));
 
     let element = document.getElementById('member-roles');
-    let editElement = document.getElementById('member-roles-edit');
     data.forEach(user => {
       let li = document.createElement('li');
       let spanName = document.createElement('span');
@@ -71,23 +56,6 @@
       element.appendChild(li);
 
 
-      let editLi = document.createElement('li');
-      let name = document.createElement('span');
-      let label = document.createElement('label');
-      let input = document.createElement('input');
-
-      name.innerText = user.name;
-      name.setAttribute("class", "name-edit");
-      label.setAttribute("for", `input-role-${user.name}`);
-      input.setAttribute("id", `input-role-${user.name}`);
-      input.setAttribute("type", "text");
-      editLi.setAttribute("class", "member-role-edit");
-
-      editLi.appendChild(name);
-      editLi.appendChild(label);
-      editLi.appendChild(input);
-
-      editElement.appendChild(editLi);
     });
 
     const cont = document.getElementById('container');
@@ -95,74 +63,17 @@
   })();
 
 
-  async function handleUpdateProfileRequest() {
-    const contEdit = document.getElementById('container-edit');
-    const cont = document.getElementById('container');
-
-    const payload = [];
-
-    const els = document.getElementsByClassName("member-role-edit");
-    Array.from(els).forEach(el => {
-      const name = el.getElementsByClassName("name-edit").item(0).textContent;
-      const role = document.getElementById(`input-role-${name}`).value;
-
-      payload.push({
-        name: name,
-        role: role
-      });
-    });
-
-    const response = await fetch('/update-roles', {
-      method: "POST",
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(payload)
-    });
-
-    const jsonResponse = await response.json();
-
-    jsonResponse.forEach(member => {
-      document.getElementById(`role-${member.name}`).textContent = member.role;
-    });
-
-
-    cont.style.display = 'block';
-    contEdit.style.display = 'none';
-  }
-
-  function updateRole() {
-    const contEdit = document.getElementById('container-edit');
-    const cont = document.getElementById('container');
-
-    const els = document.getElementsByClassName("member-role");
-    Array.from(els).forEach(el => {
-      const name = el.getElementsByClassName("name").item(0).textContent;
-      document.getElementById(`input-role-${name}`).value = document.getElementById(`role-${name}`).textContent;
-    });
-
-    cont.style.display = 'none';
-    contEdit.style.display = 'block';
-  }
 </script>
 <body>
 <div>
     <h1>Team member roles</h1>
-    <img src='/static/pups.jpg' alt="user-profile">
+    <img src='/static/team.jpg' alt="team members">
 </div>
 
 <div class='container' id='container'>
     <ul id="member-roles"></ul>
-    <button class='button' onclick="updateRole()">Edit</button>
-</div>
-
-<div class='container' id='container-edit'>
-    <ul id="member-roles-edit"></ul>
-    <button class='button' onclick="handleUpdateProfileRequest()">Save</button>
 </div>
 </body>
 </html>
-
 
 

@@ -1,79 +1,95 @@
 pipeline {
     agent any
-    
+
     tools {
         gradle 'gradle-8.12'
+    }
+
+    environment {
+        APP_IMAGE = 'cr.yandex/crpm5u802b9d7cp3853s/gradle-app'
+        HELM_REPO_URL = 'https://github.com/morgenvor/java-mysql-chart.git'
+        HELM_REPO_BRANCH = 'main'
+        K8S_CLUSTER = 'k8s-cluster'
+        K8S_NAMESPACE = 'default'
     }
 
     options {
         timeout(time: 30, unit: 'MINUTES')
         disableConcurrentBuilds()
     }
-    
+
     stages {
-        stage('Increment Version') {
+        stage('Prepare Build') {
             steps {
                 script {
-                    echo 'Incrementing app version...'
-                    sh "gradle updateVersion -Prelease.useAutomaticVersion=true"
-                    def version = sh(script: "gradle properties -q | grep '^version:' | awk '{print \$2}'", returnStdout: true).trim()
-            
-                    env.IMAGE_NAME = "${version}-${BUILD_NUMBER}"
+                    env.IMAGE_TAG = sh(
+                        script: 'git rev-parse HEAD',
+                        returnStdout: true
+                    ).trim()
+                    echo "Building commit ${env.IMAGE_TAG}"
                 }
             }
         }
+
         stage('Build JAR') {
             steps {
                 echo "Building jar..."
                 sh 'gradle clean build'
             }
         }
+
         stage('Build Image') {
             environment {
                 PATH = "/var/jenkins_home/yandex-cloud/bin:${env.PATH}"
             }
             steps {
                 script {
-                    echo "Building image: ${env.IMAGE_NAME}"
-                    sh "docker build --provenance=false -t cr.yandex/crpm5u802b9d7cp3853s/gradle-app:${env.IMAGE_NAME} ."
-                    sh "docker push cr.yandex/crpm5u802b9d7cp3853s/gradle-app:${env.IMAGE_NAME}"
+                    echo "Building image: ${env.APP_IMAGE}:${env.IMAGE_TAG}"
+                    sh "docker build --provenance=false -t ${env.APP_IMAGE}:${env.IMAGE_TAG} ."
+                    sh "docker push ${env.APP_IMAGE}:${env.IMAGE_TAG}"
                 }
             }
         }
+
+        stage('Fetch Helmfile') {
+            steps {
+                dir('java-mysql-chart') {
+                    deleteDir()
+                    git branch: env.HELM_REPO_BRANCH, url: env.HELM_REPO_URL
+                }
+            }
+        }
+
         stage('Deploy') {
             environment {
-                K8S_NAME = 'java-gradle-app'
                 PATH = "/var/jenkins_home/yandex-cloud/bin:${env.PATH}"
             }
             steps {
                 script {
-                    sh '''
+                    def kubeconfig = "${env.WORKSPACE}/kubeconfig"
+                    try {
+                        withEnv(["KUBECONFIG=${kubeconfig}", "APP_VERSION=${env.IMAGE_TAG}"]) {
+                            sh '''
                         yc managed-kubernetes cluster get-credentials \
-                            k8s-cluster \
+                            "$K8S_CLUSTER" \
                             --external \
-                            --kubeconfig ~/.kube/config \
+                            --kubeconfig "$KUBECONFIG" \
                             --force
 
-                        envsubst < k8s-pipeline/deployment.yaml | kubectl apply -f -
-                        envsubst < k8s-pipeline/service.yaml | kubectl apply -f -
-                    '''
-                    sh "kubectl rollout status deployment/${K8S_NAME} --timeout=180s"
-                }
-            }
-        }
-        stage('Commit version update') {
-            steps {
-                script {
-                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                        withCredentials([usernamePassword(credentialsId: 'githubapi', passwordVariable: 'PASS', usernameVariable: 'USER')]) { 
-                        sh 'git config --local user.email "jenkins@example.com"'
-                        sh 'git config --local user.name "jenkins"'
+                        kubectl get secret mysql-secret -n "$K8S_NAMESPACE" >/dev/null
+                            '''
 
-                        sh 'git add .'
-                        sh 'git diff --cached --quiet || git commit -m "ci: version bump"'
-                        sh "git push https://${USER}:${PASS}@github.com/morgenvor/dockerex.git HEAD:master"
+                            dir('java-mysql-chart') {
+                                sh 'helmfile lint --skip-deps'
+                                sh 'helmfile template --skip-deps >/tmp/java-mysql-chart-rendered.yaml'
+                                sh 'helmfile apply --skip-deps --wait --timeout 300 --suppress-secrets'
+                            }
+
+                            sh 'kubectl rollout status deployment/myapp -n "$K8S_NAMESPACE" --timeout=180s'
                         }
-                    }   
+                    } finally {
+                        sh "rm -f '${kubeconfig}'"
+                    }
                 }
             }
         }
