@@ -42,20 +42,19 @@ pipeline {
                 script {
                     echo "Building image: ${env.APP_IMAGE}:${env.IMAGE_TAG}"
                     sh "docker build --provenance=false -t ${env.APP_IMAGE}:${env.IMAGE_TAG} ."
-                    def pushOutput = sh(
-                        script: """
-#!/usr/bin/env bash
-set -o pipefail
-docker push ${env.APP_IMAGE}:${env.IMAGE_TAG} 2>&1 | tee docker-push.log
-""",
+                    docker push ${env.APP_IMAGE}:${env.IMAGE_TAG}
+
+                    def rawDigest = sh(
+                        script: "docker inspect --format='{{index .RepoDigests 0}}' ${env.APP_IMAGE}:${env.IMAGE_TAG}",
                         returnStdout: true
                     ).trim()
-                    def digestMatch = pushOutput =~ /digest:\s+(sha256:[0-9a-f]+)/
-                    if (!digestMatch.find()) {
-                        error "Docker registry did not return an image digest"
+
+                    if (rawDigest.contains('@')) {
+                        env.IMAGE_DIGEST = rawDigest.split('@')[1]
+                    } else {
+                        error "Failed to retrieve image digest via docker inspect"
                     }
-                    env.IMAGE_DIGEST = digestMatch.group(1)
-                    sh 'rm -f docker-push.log'
+
                     echo "Published image digest: ${env.IMAGE_DIGEST}"
                 }
             }
