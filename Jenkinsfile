@@ -66,7 +66,7 @@ pipeline {
                             dir('helm') {
                                 sh 'helmfile lint --skip-deps'
                                 sh 'helmfile template --skip-deps >/tmp/java-mysql-public-rendered.yaml'
-                                sh 'helmfile apply --skip-deps --wait --timeout 300 --suppress-secrets'
+                                sh 'helmfile apply --skip-deps --suppress-secrets'
                             }
 
                             sh 'kubectl rollout status deployment/myapp -n "$K8S_NAMESPACE" --timeout=180s'
