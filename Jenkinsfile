@@ -1,10 +1,6 @@
 pipeline {
     agent any
 
-    tools {
-        gradle 'gradle-8.12'
-    }
-
     environment {
         APP_IMAGE = 'cr.yandex/crpm5u802b9d7cp3853s/gradle-app'
         K8S_CLUSTER = 'k8s-cluster'
@@ -33,7 +29,7 @@ pipeline {
         stage('Build JAR') {
             steps {
                 echo "Building jar..."
-                sh 'gradle clean build'
+                sh './gradlew clean build'
             }
         }
 
