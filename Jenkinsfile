@@ -42,7 +42,7 @@ pipeline {
                 script {
                     echo "Building image: ${env.APP_IMAGE}:${env.IMAGE_TAG}"
                     sh "docker build --provenance=false -t ${env.APP_IMAGE}:${env.IMAGE_TAG} ."
-                    docker push ${env.APP_IMAGE}:${env.IMAGE_TAG}
+                    sh "docker push ${env.APP_IMAGE}:${env.IMAGE_TAG}"
 
                     def rawDigest = sh(
                         script: "docker inspect --format='{{index .RepoDigests 0}}' ${env.APP_IMAGE}:${env.IMAGE_TAG}",
