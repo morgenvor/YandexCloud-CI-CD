@@ -20,6 +20,8 @@ releases:
     set:
       - name: appVersion
         value: {{ requiredEnv "APP_VERSION" | quote }}
+      - name: appImageDigest
+        value: {{ requiredEnv "APP_IMAGE_DIGEST" | quote }}
   - name: phpmyadmin
     namespace: default
     chart: ./phpmyadminchart

@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: {{ .Values.appName }}
-        image: "{{ .Values.appImage }}:{{ .Values.appVersion }}"
+        image: {{ if .Values.appImageDigest }}{{ printf "%s@%s" .Values.appImage .Values.appImageDigest | quote }}{{ else }}{{ printf "%s:%s" .Values.appImage .Values.appVersion | quote }}{{ end }}
         securityContext:
           runAsNonRoot: true
           runAsUser: 10001

@@ -4,6 +4,7 @@ secretName: mysql-secret
 appReplicas: 3
 appImage: cr.yandex/crpm5u802b9d7cp3853s/gradle-app
 appVersion: dev
+appImageDigest: ""
 containerPort: 8080
 
 externalEnvVars:

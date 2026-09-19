@@ -5,12 +5,15 @@ and the Jenkins pipeline that builds and deploys it.
 
 ## Deployment flow
 
-Jenkins builds the application, tags the image with the full Git commit SHA,
-pushes it to Yandex Cloud Registry, and deploys the Helmfile in the `helm`
-directory.
+Jenkins builds the application with the repository's Gradle wrapper, tags the
+image with the full Git commit SHA, records the registry digest, and deploys
+that immutable image through the Helmfile in the `helm` directory.
 
 The Helmfile directory is the only owner of the Kubernetes application
 resources. The old raw Kubernetes manifests are no longer used.
+
+The application uses its inline Jenkinsfile directly. The separate
+`jenkins-sharedlib` repository is not required by this pipeline.
 
 ## Required cluster Secret
 
@@ -30,6 +33,9 @@ in its container. The current portfolio setup uses the service account's
 `cloud-registry.artifacts.pusher` and `k8s.cluster-api.admin` roles.
 
 ## Jenkins image includes:
+
+The Jenkins agent must also include `curl` for the post-deployment smoke test.
+
 kubectl 1.35.1
 Helm 4.2.4
 Helmfile 1.7.4
