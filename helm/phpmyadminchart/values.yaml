@@ -12,3 +12,11 @@ externalEnvVars:
 
 servicePort: 8085
 targetPort: 80
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 250m
+    memory: 256Mi

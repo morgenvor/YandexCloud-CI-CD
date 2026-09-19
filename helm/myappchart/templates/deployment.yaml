@@ -15,8 +15,30 @@ spec:
       containers:
       - name: {{ .Values.appName }}
         image: "{{ .Values.appImage }}:{{ .Values.appVersion }}"
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 10001
+          runAsGroup: 10001
+          allowPrivilegeEscalation: false
         ports:
         - containerPort: {{ .Values.containerPort }}
+        resources:
+{{ toYaml .Values.resources | indent 10 }}
+        startupProbe:
+          tcpSocket:
+            port: {{ .Values.containerPort }}
+          failureThreshold: {{ .Values.probes.startup.failureThreshold }}
+          periodSeconds: {{ .Values.probes.startup.periodSeconds }}
+        readinessProbe:
+          tcpSocket:
+            port: {{ .Values.containerPort }}
+          initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds }}
+          periodSeconds: {{ .Values.probes.readiness.periodSeconds }}
+        livenessProbe:
+          tcpSocket:
+            port: {{ .Values.containerPort }}
+          initialDelaySeconds: {{ .Values.probes.liveness.initialDelaySeconds }}
+          periodSeconds: {{ .Values.probes.liveness.periodSeconds }}
         env:
         {{- range .Values.externalEnvVars }}
           - name: {{ .name }}
@@ -31,4 +53,3 @@ spec:
                 key: {{ .key }}
               {{- end }}
         {{- end }}
-

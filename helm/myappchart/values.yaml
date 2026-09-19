@@ -28,9 +28,30 @@ configMapEnvVars:
   - name: mysql-endpoint
     value: "mysql-primary"
 
-ingressServiceName: myapp
-ingressClass: nginx
-ingressServicePort: 8080
+ingress:
+  enabled: true
+  className: nginx
+  host: ""
+  tls: []
 
 servicePort: 8080
 targetPort: 8080
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+probes:
+  startup:
+    failureThreshold: 30
+    periodSeconds: 5
+  readiness:
+    initialDelaySeconds: 5
+    periodSeconds: 5
+  liveness:
+    initialDelaySeconds: 30
+    periodSeconds: 10

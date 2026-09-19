@@ -5,6 +5,10 @@ repositories:
 
 helmDefaults:
   createNamespace: false
+  wait: true
+  atomic: true
+  rollbackOnFailure: true
+  timeout: 300
 
 releases:
   - name: myapp

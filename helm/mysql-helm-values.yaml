@@ -6,7 +6,7 @@ primary:
     size: 5Gi
 
 secondary:
-  replicaCount: 2
+  replicaCount: 1
   persistence:
     enabled: true
     size: 5Gi

@@ -6,10 +6,10 @@ and the Jenkins pipeline that builds and deploys it.
 ## Deployment flow
 
 Jenkins builds the application, tags the image with the full Git commit SHA,
-pushes it to Yandex Cloud Registry, checks out the companion
-`java-mysql-chart` repository, and deploys that Helmfile.
+pushes it to Yandex Cloud Registry, and deploys the Helmfile in the `helm`
+directory.
 
-The Helmfile repository is the only owner of the Kubernetes application
+The Helmfile directory is the only owner of the Kubernetes application
 resources. The old raw Kubernetes manifests are no longer used.
 
 ## Required cluster Secret
@@ -35,4 +35,3 @@ Helm 4.2.4
 Helmfile 1.7.4
 Docker CLI 29.7.2
 Buildx 0.36.1
-

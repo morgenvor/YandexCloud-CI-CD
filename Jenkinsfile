@@ -7,8 +7,6 @@ pipeline {
 
     environment {
         APP_IMAGE = 'cr.yandex/crpm5u802b9d7cp3853s/gradle-app'
-        HELM_REPO_URL = 'git@github.com:morgenvor/java-mysql-chart.git'
-        HELM_REPO_BRANCH = 'main'
         K8S_CLUSTER = 'k8s-cluster'
         K8S_NAMESPACE = 'default'
         PATH = "/var/jenkins_home/yandex-cloud/bin:${env.PATH}"
@@ -49,17 +47,6 @@ pipeline {
             }
         }
 
-        stage('Fetch Helmfile') {
-            steps {
-                dir('java-mysql-chart') {
-                    deleteDir()
-                    sshagent(credentials: ['github-shh-key']) {
-                        sh "git clone -b ${env.HELM_REPO_BRANCH} ${env.HELM_REPO_URL} ."
-                    }
-                }
-            }
-        }
-
         stage('Deploy') {
             steps {
                 script {
@@ -76,13 +63,16 @@ pipeline {
                         kubectl get secret mysql-secret -n "$K8S_NAMESPACE" >/dev/null
                             '''
 
-                            dir('java-mysql-chart') {
+                            dir('helm') {
                                 sh 'helmfile lint --skip-deps'
-                                sh 'helmfile template --skip-deps >/tmp/java-mysql-chart-rendered.yaml'
+                                sh 'helmfile template --skip-deps >/tmp/java-mysql-public-rendered.yaml'
                                 sh 'helmfile apply --skip-deps --wait --timeout 300 --suppress-secrets'
                             }
 
                             sh 'kubectl rollout status deployment/myapp -n "$K8S_NAMESPACE" --timeout=180s'
+                            sh 'kubectl rollout status deployment/phpmyadmin -n "$K8S_NAMESPACE" --timeout=180s'
+                            sh 'kubectl rollout status statefulset/mysql-primary -n "$K8S_NAMESPACE" --timeout=300s'
+                            sh 'kubectl rollout status statefulset/mysql-secondary -n "$K8S_NAMESPACE" --timeout=300s'
                         }
                     } finally {
                         sh "rm -f '${kubeconfig}'"
