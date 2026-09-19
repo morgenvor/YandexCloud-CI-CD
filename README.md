@@ -29,3 +29,10 @@ Jenkins authenticates to Yandex Cloud through the preconfigured `yc` profile
 in its container. The current portfolio setup uses the service account's
 `cloud-registry.artifacts.pusher` and `k8s.cluster-api.admin` roles.
 
+## Jenkins image includes:
+kubectl 1.35.1
+Helm 4.2.4
+Helmfile 1.7.4
+Docker CLI 29.7.2
+Buildx 0.36.1
+

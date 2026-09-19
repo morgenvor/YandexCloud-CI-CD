@@ -1,0 +1,32 @@
+repositories:
+  - name: bitnamicharts
+    url: registry-1.docker.io/bitnamicharts
+    oci: true
+
+helmDefaults:
+  createNamespace: false
+
+releases:
+  - name: myapp
+    namespace: default
+    chart: ./myappchart
+    needs:
+      - mysql
+    values:
+      - ./myappchart/values.yaml
+    set:
+      - name: appVersion
+        value: {{ requiredEnv "APP_VERSION" | quote }}
+  - name: phpmyadmin
+    namespace: default
+    chart: ./phpmyadminchart
+    needs:
+      - mysql
+    values:
+      - ./phpmyadminchart/values.yaml
+  - name: mysql
+    namespace: default
+    chart: bitnamicharts/mysql
+    version: 14.0.3
+    values:
+      - ./mysql-helm-values.yaml

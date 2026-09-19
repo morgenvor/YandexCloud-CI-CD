@@ -6,4 +6,4 @@ out
 bin/
 *.class
 manifests*
-values*
+docker-compose.yaml

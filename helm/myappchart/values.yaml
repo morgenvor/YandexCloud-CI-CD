@@ -1,0 +1,36 @@
+appName: myapp
+configMapName: mysql-configmap
+secretName: mysql-secret
+appReplicas: 3
+appImage: cr.yandex/crpm5u802b9d7cp3853s/gradle-app
+appVersion: dev
+containerPort: 8080
+
+externalEnvVars:
+  - name: DB_PWD
+    type: secret
+    key: mysql-password
+  - name: DB_USER
+    type: configmap
+    key: mysql-username
+  - name: DB_NAME
+    type: configmap
+    key: mysql-database
+  - name: DB_SERVER
+    type: configmap
+    key: mysql-endpoint
+
+configMapEnvVars:
+  - name: mysql-database
+    value: "mysqldb"
+  - name: mysql-username
+    value: "user"
+  - name: mysql-endpoint
+    value: "mysql-primary"
+
+ingressServiceName: myapp
+ingressClass: nginx
+ingressServicePort: 8080
+
+servicePort: 8080
+targetPort: 8080

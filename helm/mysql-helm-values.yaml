@@ -1,0 +1,28 @@
+architecture: replication
+
+primary:
+  persistence:
+    enabled: true
+    size: 5Gi
+
+secondary:
+  replicaCount: 2
+  persistence:
+    enabled: true
+    size: 5Gi
+
+auth:
+  existingSecret: "mysql-secret"
+  username: "user"     
+  database: "mysqldb"
+
+metrics:
+  enabled: false
+
+image:
+  repository: bitnamilegacy/mysql
+  tag: 9.4.0-debian-12-r1
+
+global:
+  security:
+    allowInsecureImages: true

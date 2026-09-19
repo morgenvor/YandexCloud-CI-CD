@@ -1,0 +1,14 @@
+appName: phpmyadmin
+configMapName: mysql-configmap
+appReplicas: 1
+appImage: phpmyadmin
+appVersion: 5.2
+containerPort: 80
+
+externalEnvVars:
+  - name: PMA_HOST
+    type: configmap
+    key: mysql-endpoint
+
+servicePort: 8085
+targetPort: 80
