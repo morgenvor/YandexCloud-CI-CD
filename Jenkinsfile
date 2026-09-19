@@ -44,14 +44,12 @@ pipeline {
                     sh "docker build --provenance=false -t ${env.APP_IMAGE}:${env.IMAGE_TAG} ."
                     sh "docker push ${env.APP_IMAGE}:${env.IMAGE_TAG}"
 
-                    def rawDigest = sh(
-                        script: "docker inspect --format='{{index .RepoDigests 0}}' ${env.APP_IMAGE}:${env.IMAGE_TAG}",
+                    env.IMAGE_DIGEST = sh(
+                        script: "docker inspect --format='{{index .RepoDigests 0}}' ${env.APP_IMAGE}:${env.IMAGE_TAG} | cut -d'@' -f2",
                         returnStdout: true
                     ).trim()
 
-                    if (rawDigest.contains('@')) {
-                        env.IMAGE_DIGEST = rawDigest.split('@')[1]
-                    } else {
+                    if (!env.IMAGE_DIGEST) {
                         error "Failed to retrieve image digest via docker inspect"
                     }
 
