@@ -18,6 +18,8 @@ releases:
     values:
       - ./myappchart/values.yaml
     set:
+      - name: appImage
+        value: {{ requiredEnv "APP_IMAGE" | quote }}
       - name: appVersion
         value: {{ requiredEnv "APP_VERSION" | quote }}
       - name: appImageDigest

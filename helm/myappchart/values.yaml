@@ -2,7 +2,7 @@ appName: myapp
 configMapName: mysql-configmap
 secretName: mysql-secret
 appReplicas: 3
-appImage: cr.yandex/crpm5u802b9d7cp3853s/gradle-app
+appImage: example.registry/gradle-app
 appVersion: dev
 appImageDigest: ""
 containerPort: 8080

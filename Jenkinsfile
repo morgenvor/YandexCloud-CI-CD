@@ -1,9 +1,13 @@
 pipeline {
     agent any
 
+    parameters {
+        string(name: 'APP_IMAGE', defaultValue: '', description: 'Yandex Container Registry image path, for example cr.yandex/<registry-id>/gradle-app')
+        string(name: 'K8S_CLUSTER', defaultValue: '', description: 'Yandex Managed Kubernetes cluster name')
+        string(name: 'SMOKE_TEST_URL', defaultValue: '', description: 'Public HTTP base URL for the /get-data smoke test')
+    }
+
     environment {
-        APP_IMAGE = 'cr.yandex/crpm5u802b9d7cp3853s/gradle-app'
-        K8S_CLUSTER = 'k8s-cluster'
         K8S_NAMESPACE = 'default'
         PATH = "/var/jenkins_home/yandex-cloud/bin:${env.PATH}"
     }
@@ -17,6 +21,18 @@ pipeline {
         stage('Prepare Build') {
             steps {
                 script {
+                    if (!params.APP_IMAGE?.trim()) {
+                        error 'APP_IMAGE must be set to the Yandex Container Registry image path'
+                    }
+                    if (!params.K8S_CLUSTER?.trim()) {
+                        error 'K8S_CLUSTER must be set to the Yandex Managed Kubernetes cluster name'
+                    }
+                    if (!params.SMOKE_TEST_URL?.trim()) {
+                        error 'SMOKE_TEST_URL must be set to the public HTTP base URL'
+                    }
+                    env.APP_IMAGE = params.APP_IMAGE.trim()
+                    env.K8S_CLUSTER = params.K8S_CLUSTER.trim()
+                    env.SMOKE_TEST_URL = params.SMOKE_TEST_URL.trim().replaceAll('/+$', '')
                     env.IMAGE_TAG = sh(
                         script: 'git rev-parse HEAD',
                         returnStdout: true
@@ -101,7 +117,7 @@ pipeline {
                                     --retry-connrefused \
                                     --connect-timeout 5 \
                                     --max-time 30 \
-                                    "http://84.252.132.38/get-data" \
+                                    "${SMOKE_TEST_URL}/get-data" \
                                     > "$smoke_response"
                                 test -s "$smoke_response"
                                 grep -q 'Sarah' "$smoke_response"

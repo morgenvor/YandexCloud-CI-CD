@@ -6,9 +6,8 @@ Helmfile bundle used to deploy the application to Yandex Managed Kubernetes.
 
 ## Application
 
-The service exposes `GET /get-data` to return team members and
-`POST /update-roles` to update their roles. At startup it creates and seeds
-the `team_members` table if necessary.
+The service exposes `GET /get-data` to return team members. At startup it
+creates and seeds the `team_members` table if necessary.
 
 Database configuration is supplied only by `DB_USER`, `DB_PWD`, `DB_SERVER`,
 and `DB_NAME`. The service listens on port `8080` and uses direct JDBC rather
@@ -16,12 +15,15 @@ than an ORM.
 
 ## Local development
 
-`docker-compose.yaml` starts MySQL `9.7.2` on port `3306`, the application on
-port `8080`, and phpMyAdmin `5.2` on port `8085`. MySQL data is stored in the
-local `mysql-data` volume. Supply database variables through your environment
-or an untracked environment file; never commit passwords.
+`docker-compose.yaml` builds the application from this repository's
+`Dockerfile`, starts MySQL `9.7.2` on port `3306`, the application on port
+`8080`, and phpMyAdmin `5.2` on port `8085`. MySQL data is stored in the
+local `mysql-data` volume. Copy `.env.example` to `.env` and replace its
+placeholder passwords before starting the stack; `.env` is intentionally
+ignored and must never be committed.
 
 ```sh
+cp .env.example .env
 ./gradlew clean build
 docker compose up --build
 ```
@@ -29,13 +31,20 @@ docker compose up --build
 ## Deployment flow
 
 Jenkins builds and tests with the Gradle wrapper, tags and pushes the image to
-Yandex Container Registry with the full Git commit SHA, records its digest,
-then deploys the immutable digest through Helmfile in `helm/`.
+the configured Yandex Container Registry path with the full Git commit SHA,
+records its digest, then deploys the immutable digest through Helmfile in
+`helm/`.
 
 The pipeline obtains a temporary kubeconfig through `yc`, checks that
 `mysql-secret` exists, runs Helmfile lint/template, applies Helmfile with wait
 and atomic rollback, waits for the two Deployments and two MySQL StatefulSets,
-then runs an HTTP smoke test through the configured public endpoint.
+then runs `GET /get-data` through the configured public endpoint.
+
+The Jenkins job exposes non-secret parameters for the Yandex Container
+Registry image path (`APP_IMAGE`), Yandex Managed Kubernetes cluster name
+(`K8S_CLUSTER`), and public smoke-test base URL (`SMOKE_TEST_URL`). Set these
+for the target environment; the pipeline appends `/get-data` to the smoke-test
+URL.
 
 The Helmfile directory is the sole owner of Kubernetes application resources.
 It deploys all releases to `default`; raw manifests are not used.
@@ -74,8 +83,8 @@ Helm `4.2.4` and Helmfile `1.7.4`.
 
 ```sh
 cd helm
-APP_VERSION=dev APP_IMAGE_DIGEST=sha256:dev helmfile lint --skip-deps
-APP_VERSION=dev APP_IMAGE_DIGEST=sha256:dev helmfile template --skip-deps
+APP_IMAGE=example.registry/gradle-app APP_VERSION=dev APP_IMAGE_DIGEST=sha256:dev helmfile lint --skip-deps
+APP_IMAGE=example.registry/gradle-app APP_VERSION=dev APP_IMAGE_DIGEST=sha256:dev helmfile template --skip-deps
 ```
 
 See [helm/README.md](helm/README.md) for release configuration and RBAC.

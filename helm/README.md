@@ -68,12 +68,13 @@ Rotate any credentials that were previously committed in repository history.
 Helmfile requires the application image tag explicitly:
 
 ```sh
-APP_VERSION=dev APP_IMAGE_DIGEST=sha256:dev helmfile lint --skip-deps
-APP_VERSION=dev APP_IMAGE_DIGEST=sha256:dev helmfile template --skip-deps
+APP_IMAGE=example.registry/gradle-app APP_VERSION=dev APP_IMAGE_DIGEST=sha256:dev helmfile lint --skip-deps
+APP_IMAGE=example.registry/gradle-app APP_VERSION=dev APP_IMAGE_DIGEST=sha256:dev helmfile template --skip-deps
 ```
 
-The Jenkins pipeline supplies the full Git commit SHA as `APP_VERSION` and the
-registry digest as `APP_IMAGE_DIGEST`, then runs `helmfile apply --wait`.
+The Jenkins pipeline supplies the registry path as `APP_IMAGE`, the full Git
+commit SHA as `APP_VERSION`, and the registry digest as `APP_IMAGE_DIGEST`,
+then runs `helmfile apply --wait`.
 The chart prefers the digest, so reusing an image tag cannot silently change
 the image selected for deployment.
 
