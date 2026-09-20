@@ -92,19 +92,17 @@ pipeline {
                             sh 'kubectl rollout status statefulset/mysql-secondary -n "$K8S_NAMESPACE" --timeout=300s'
                             sh '''
                                 set -eu
-                                port_forward_log="$WORKSPACE/port-forward.log"
                                 smoke_response="$WORKSPACE/smoke-response.json"
-                                kubectl port-forward service/myapp 18080:8080 -n "$K8S_NAMESPACE" > "$port_forward_log" 2>&1 &
-                                port_forward_pid=$!
-                                cleanup() {
-                                    kill "$port_forward_pid" 2>/dev/null || true
-                                    rm -f "$port_forward_log" "$smoke_response"
-                                }
-                                trap cleanup EXIT
+                                trap 'rm -f "$smoke_response"' EXIT
 
                                 curl --fail --silent --show-error \
-                                    --retry 15 --retry-delay 2 --retry-connrefused \
-                                    "http://127.0.0.1:18080/get-data" > "$smoke_response"
+                                    --retry 15 \
+                                    --retry-delay 2 \
+                                    --retry-connrefused \
+                                    --connect-timeout 5 \
+                                    --max-time 30 \
+                                    "http://84.252.132.38/get-data" \
+                                    > "$smoke_response"
                                 test -s "$smoke_response"
                                 grep -q 'Sarah' "$smoke_response"
                             '''
