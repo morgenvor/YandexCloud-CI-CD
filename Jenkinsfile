@@ -1,13 +1,10 @@
 pipeline {
     agent any
 
-    parameters {
-        string(name: 'APP_IMAGE', defaultValue: 'cr.yandex/crpm5u802b9d7cp3853s/gradle-app', description: 'Yandex Container Registry image path, for example cr.yandex/<registry-id>/gradle-app')
-        string(name: 'K8S_CLUSTER', defaultValue: 'k8s-cluster', description: 'Yandex Managed Kubernetes cluster name')
-        string(name: 'SMOKE_TEST_URL', defaultValue: 'http://84.252.132.38', description: 'Public HTTP base URL for the /get-data smoke test')
-    }
-
     environment {
+        APP_IMAGE = 'cr.yandex/crpm5u802b9d7cp3853s/gradle-app'
+        K8S_CLUSTER = 'k8s-cluster'
+        SMOKE_TEST_URL = 'http://84.252.132.38'
         K8S_NAMESPACE = 'default'
         PATH = "/var/jenkins_home/yandex-cloud/bin:${env.PATH}"
     }
@@ -21,18 +18,6 @@ pipeline {
         stage('Prepare Build') {
             steps {
                 script {
-                    if (!params.APP_IMAGE?.trim()) {
-                        error 'APP_IMAGE must be set to the Yandex Container Registry image path'
-                    }
-                    if (!params.K8S_CLUSTER?.trim()) {
-                        error 'K8S_CLUSTER must be set to the Yandex Managed Kubernetes cluster name'
-                    }
-                    if (!params.SMOKE_TEST_URL?.trim()) {
-                        error 'SMOKE_TEST_URL must be set to the public HTTP base URL'
-                    }
-                    env.APP_IMAGE = params.APP_IMAGE.trim()
-                    env.K8S_CLUSTER = params.K8S_CLUSTER.trim()
-                    env.SMOKE_TEST_URL = params.SMOKE_TEST_URL.trim().replaceAll('/+$', '')
                     env.IMAGE_TAG = sh(
                         script: 'git rev-parse HEAD',
                         returnStdout: true

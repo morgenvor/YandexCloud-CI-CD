@@ -40,11 +40,10 @@ The pipeline obtains a temporary kubeconfig through `yc`, checks that
 and atomic rollback, waits for the two Deployments and two MySQL StatefulSets,
 then runs `GET /get-data` through the configured public endpoint.
 
-The Jenkins job exposes non-secret parameters for the Yandex Container
-Registry image path (`APP_IMAGE`), Yandex Managed Kubernetes cluster name
-(`K8S_CLUSTER`), and public smoke-test base URL (`SMOKE_TEST_URL`). Set these
-for the target environment; the pipeline appends `/get-data` to the smoke-test
-URL.
+The Jenkinsfile configures the Yandex Container Registry image path
+(`APP_IMAGE`), Yandex Managed Kubernetes cluster name (`K8S_CLUSTER`), and
+public smoke-test base URL (`SMOKE_TEST_URL`) through its `environment` block.
+The pipeline appends `/get-data` to the smoke-test URL.
 
 The Helmfile directory is the sole owner of Kubernetes application resources.
 It deploys all releases to `default`; raw manifests are not used.
