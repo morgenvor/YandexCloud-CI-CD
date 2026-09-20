@@ -170,10 +170,6 @@ status. `create`, `update`, `patch`, and `delete` on managed resources are
 also needed by normal upgrades and `atomic` rollback: Helm may restore a prior
 revision or delete objects created by a failed revision.
 
-If Jenkins sets `HELM_DRIVER=configmap`, Helm release metadata moves from
-Secrets to ConfigMaps; the proposed Role already permits both. Confirm the
-actual runtime behavior without changing cluster state:
-
 ```sh
 helm env | grep HELM_DRIVER
 kubectl auth can-i --as=<YANDEX_SERVICE_ACCOUNT_ID> --namespace=default --list
