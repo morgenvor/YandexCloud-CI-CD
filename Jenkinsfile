@@ -2,9 +2,9 @@ pipeline {
     agent any
 
     parameters {
-        string(name: 'APP_IMAGE', defaultValue: '', description: 'Yandex Container Registry image path, for example cr.yandex/<registry-id>/gradle-app')
-        string(name: 'K8S_CLUSTER', defaultValue: '', description: 'Yandex Managed Kubernetes cluster name')
-        string(name: 'SMOKE_TEST_URL', defaultValue: '', description: 'Public HTTP base URL for the /get-data smoke test')
+        string(name: 'APP_IMAGE', defaultValue: 'cr.yandex/crpm5u802b9d7cp3853s/gradle-app', description: 'Yandex Container Registry image path, for example cr.yandex/<registry-id>/gradle-app')
+        string(name: 'K8S_CLUSTER', defaultValue: 'k8s-cluster', description: 'Yandex Managed Kubernetes cluster name')
+        string(name: 'SMOKE_TEST_URL', defaultValue: 'http://84.252.132.38', description: 'Public HTTP base URL for the /get-data smoke test')
     }
 
     environment {
