@@ -1,89 +1,70 @@
 # Java application delivery
 
-This repository contains a Java 17 Spring Boot application, its Docker and
-local Docker Compose configuration, an inline Jenkins pipeline, and the
-Helmfile bundle used to deploy the application to Yandex Managed Kubernetes.
+## Project overview
+
+A small Java 17 / Spring Boot service delivered with Docker, Jenkins, and Helmfile. The repository demonstrates a practical Yandex Cloud delivery flow: build and test an application, publish an immutable container image, deploy it to Yandex Managed Kubernetes, verify rollouts, and run an HTTP smoke test.
+
+The Kubernetes bundle is in [`helm/`](helm/), with detailed deployment documentation in [`helm/README.md`](helm/README.md).
 
 ## Application
 
-The service exposes `GET /get-data` to return team members. At startup it
-creates and seeds the `team_members` table if necessary.
+The service listens on port `8080` and uses direct MySQL JDBC access. On startup it creates the `team_members` table if needed and seeds it when empty.
 
-Database configuration is supplied only by `DB_USER`, `DB_PWD`, `DB_SERVER`,
-and `DB_NAME`. The service listens on port `8080` and uses direct JDBC rather
-than an ORM.
+- `GET /get-data` returns team members.
+- `POST /update-roles` updates team-member roles.
+- Database configuration uses `DB_USER`, `DB_PWD`, `DB_SERVER`, and `DB_NAME`.
 
 ## Local development
 
-`docker-compose.yaml` builds the application from this repository's
-`Dockerfile`, starts MySQL `9.7.2` on port `3306`, the application on port
-`8080`, and phpMyAdmin `5.2` on port `8085`. MySQL data is stored in the
-local `mysql-data` volume. Copy `.env.example` to `.env` and replace its
-placeholder passwords before starting the stack; `.env` is intentionally
-ignored and must never be committed.
+Copy `.env.example` to `.env`, fill in local values, and keep the file uncommitted. Then run:
 
-```sh
-cp .env.example .env
+```bash
 ./gradlew clean build
 docker compose up --build
 ```
 
-## Deployment flow
+Docker Compose builds the application image and starts Java on `localhost:8080`, MySQL on `localhost:3306`, and phpMyAdmin on `localhost:8085`. MySQL data is stored in the `mysql-data` volume.
 
-Jenkins builds and tests with the Gradle wrapper, tags and pushes the image to
-the configured Yandex Container Registry path with the full Git commit SHA,
-records its digest, then deploys the immutable digest through Helmfile in
-`helm/`.
+## CI/CD pipeline
 
-The pipeline obtains a temporary kubeconfig through `yc`, checks that
-`mysql-secret` exists, runs Helmfile lint/template, applies Helmfile with wait
-and atomic rollback, waits for the two Deployments and two MySQL StatefulSets,
-then runs `GET /get-data` through the configured public endpoint.
+A GitHub push triggers Jenkins through the configured GitHub webhook. The inline [`Jenkinsfile`](Jenkinsfile) performs this flow:
 
-The Jenkinsfile configures the Yandex Container Registry image path
-(`APP_IMAGE`), Yandex Managed Kubernetes cluster name (`K8S_CLUSTER`), and
-public smoke-test base URL (`SMOKE_TEST_URL`) through its `environment` block.
-The pipeline appends `/get-data` to the smoke-test URL.
-
-The Helmfile directory is the sole owner of Kubernetes application resources.
-It deploys all releases to `default`; raw manifests are not used.
-
-## Required cluster Secret
-
-Before deployment, the target namespace must already contain a Secret named
-`mysql-secret` with these keys:
-
-- `mysql-root-password`
-- `mysql-password`
-- `mysql-replication-password`
-
-The Secret is intentionally not stored in Git or rendered by the Helm charts.
-Create it through a protected environment/bootstrap process using the actual
-rotated values. Never commit the values or place them in a sample file.
-
-Jenkins authenticates with a Yandex Cloud Service Account. It requires
-`k8s.cluster-api.viewer` for cluster API authentication and a namespace-scoped
-Kubernetes Role and RoleBinding for deployment. It must not receive
-cluster-wide Kubernetes RBAC rights. The least-privilege manifest and full
-resource inventory are documented in [helm/README.md](helm/README.md).
-
-`ingress-nginx` is operated separately; this repository manages only
-`Ingress/myapp` in `default`.
-
-## Jenkins agent requirements
-
-The Jenkins agent must also include `curl` for the post-deployment smoke test.
-
-The agent needs Docker with Buildx, `yc`, `kubectl`, Helm, Helmfile, `curl`,
-and the Java/Gradle execution requirements. The repository was validated with
-Helm `4.2.4` and Helmfile `1.7.4`.
-
-## Helmfile validation
-
-```sh
-cd helm
-APP_IMAGE=example.registry/gradle-app APP_VERSION=dev APP_IMAGE_DIGEST=sha256:dev helmfile lint --skip-deps
-APP_IMAGE=example.registry/gradle-app APP_VERSION=dev APP_IMAGE_DIGEST=sha256:dev helmfile template --skip-deps
+```text
+GitHub push → GitHub webhook → Jenkins → Gradle build/test
+  → Docker image build → Yandex Container Registry
+  → immutable image digest → temporary kubeconfig via Yandex Cloud CLI (yc)
+  → Helmfile validation/deployment → Kubernetes rollout checks
+  → HTTP smoke test: GET /get-data
 ```
 
-See [helm/README.md](helm/README.md) for release configuration and RBAC.
+The image is initially tagged with the full Git commit SHA. Jenkins then deploys the resolved registry digest, so Kubernetes does not depend on a mutable tag. The Jenkins agent must provide Java/Gradle, Docker, `yc`, `kubectl`, Helm, Helmfile, `curl`, and Git. No Jenkins Dockerfile or Shared Library is part of this repository.
+
+Jenkins uses a Yandex Cloud Service Account for Yandex Cloud access and a namespace-scoped Kubernetes `Role`/`RoleBinding` in `default`. Those RBAC objects are provisioned externally; this repository does not grant Jenkins cluster-scoped permissions.
+
+## Kubernetes deployment
+
+Helmfile deploys three releases to the existing `default` namespace: MySQL from the Bitnami OCI chart (`14.0.3`), the Java application from the local `myappchart`, and phpMyAdmin from the local `phpmyadminchart`.
+
+`ingress-nginx` is external cluster infrastructure and is not managed by this Helmfile. The application chart creates the application `Ingress` resource and expects the existing `nginx` IngressClass.
+
+Before deployment, `Secret/mysql-secret` must exist in `default`. Required key names are:
+
+```text
+mysql-root-password
+mysql-password
+mysql-replication-password
+```
+
+Secret values, cluster bootstrap, and Jenkins RBAC are external to this repository.
+
+## Validation / useful commands
+
+Run Helmfile commands from `helm/`. All three variables are required by the current Helmfile:
+
+```bash
+cd helm
+APP_IMAGE=cr.yandex/<registry-id>/gradle-app APP_VERSION=dev APP_IMAGE_DIGEST=sha256:dev helmfile lint --skip-deps
+APP_IMAGE=cr.yandex/<registry-id>/gradle-app APP_VERSION=dev APP_IMAGE_DIGEST=sha256:dev helmfile template --skip-deps
+```
+
+For the full release inventory, persistence settings, Secret contract, deployment behavior, and RBAC scope, see [`helm/README.md`](helm/README.md).
