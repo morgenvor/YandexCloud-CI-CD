@@ -1,5 +1,32 @@
 # Java application delivery
 
+**Cloud infra decommissioned · Locally reproducible via Compose · Jenkins + Helmfile**
+
+`Jenkins` · `Docker` · `Yandex Container Registry` · `Kubernetes` · `Helm` · `Helmfile` · `Gradle` · `MySQL`
+
+Screenshots of Jenkins builds and the cluster are unavailable — the cloud environment is decommissioned. The pipeline is fully described by the [`Jenkinsfile`](Jenkinsfile) in this repository, and the application still runs locally from one `docker compose up`.
+
+## Pipeline
+
+<p align="center">
+  <img src="docs/pipeline.svg" width="100%" alt="Delivery pipeline: a GitHub push triggers Jenkins through a webhook; Jenkins resolves the commit SHA, builds and tests with Gradle, pushes the image to Yandex Container Registry, pins the deployment to the registry digest, deploys with Helmfile, then verifies four rollouts and a smoke test.">
+</p>
+
+## Architecture
+
+Two layers: the local Compose stack and the cluster release set. `ingress-nginx` and `Secret/mysql-secret` are external to this repository.
+
+<p align="center">
+  <img src="docs/architecture.svg" width="100%" alt="Architecture: locally, Compose starts the app, MySQL and phpMyAdmin; in Managed Kubernetes, Helmfile applies the Java app, phpMyAdmin and MySQL primary plus secondary releases. Ingress-nginx and the mysql-secret are external.">
+</p>
+
+## What this proves
+
+- **Immutable releases.** Images are tagged with the full commit SHA, and the deployment consumes the registry digest resolved after the push, so a mutable tag cannot silently change what runs.
+- **Least-privilege delivery.** Jenkins authenticates with a Yandex Cloud service account and only a namespace-scoped `Role`/`RoleBinding` in `default`; CI gets no cluster-scoped permissions.
+- **Gated deploys.** `helmfile apply --wait` is followed by `kubectl rollout status` on the application, phpMyAdmin, and both MySQL StatefulSets, then by an HTTP smoke test that asserts the response body.
+- **Local reproducibility.** The same application and database come up from one `docker compose up`, so the project is reviewable without a cloud account.
+
 ## Project overview
 
 A small Java 17 / Spring Boot service delivered with Docker, Jenkins, and Helmfile. The repository demonstrates a practical Yandex Cloud delivery flow: build and test an application, publish an immutable container image, deploy it to Yandex Managed Kubernetes, verify rollouts, and run an HTTP smoke test.

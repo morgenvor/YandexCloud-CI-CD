@@ -1,0 +1,114 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 680" width="960" height="680" role="img" aria-labelledby="t d">
+  <title id="t">Architecture: local Compose stack and cluster releases</title>
+  <desc id="d">Two layers. Locally, docker compose starts the Java app on 8080, MySQL on 3306 with a persistent volume, and phpMyAdmin on 8085. In Managed Kubernetes, Helmfile applies three releases to the default namespace: the Java app as a 3-replica Deployment with Service and Ingress, phpMyAdmin as a single replica, and MySQL as primary plus secondary StatefulSets with 5 gigabyte volumes each. Ingress-nginx and Secret mysql-secret are external and not managed here.</desc>
+  <style>
+    text { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; fill: #e6ebf5; }
+    .muted { fill: #8b96ad; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    @keyframes t0 { 0%,2.50% { opacity: 0; transform: scale(.94); } 5.00%,94% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(1); } } .t0 { animation: t0 12s infinite; transform-box: fill-box; transform-origin: center; }
+    @keyframes t1 { 0%,4.50% { opacity: 0; transform: scale(.94); } 7.00%,94% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(1); } } .t1 { animation: t1 12s infinite; transform-box: fill-box; transform-origin: center; }
+    @keyframes t2 { 0%,6.50% { opacity: 0; transform: scale(.94); } 9.00%,94% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(1); } } .t2 { animation: t2 12s infinite; transform-box: fill-box; transform-origin: center; }
+    @keyframes t3 { 0%,8.50% { opacity: 0; transform: scale(.94); } 11.00%,94% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(1); } } .t3 { animation: t3 12s infinite; transform-box: fill-box; transform-origin: center; }
+    @keyframes t4 { 0%,10.50% { opacity: 0; transform: scale(.94); } 13.00%,94% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(1); } } .t4 { animation: t4 12s infinite; transform-box: fill-box; transform-origin: center; }
+    @keyframes t5 { 0%,12.50% { opacity: 0; transform: scale(.94); } 15.00%,94% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(1); } } .t5 { animation: t5 12s infinite; transform-box: fill-box; transform-origin: center; }
+    @keyframes t6 { 0%,14.50% { opacity: 0; transform: scale(.94); } 17.00%,94% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(1); } } .t6 { animation: t6 12s infinite; transform-box: fill-box; transform-origin: center; }
+    @keyframes t7 { 0%,16.50% { opacity: 0; transform: scale(.94); } 19.00%,94% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(1); } } .t7 { animation: t7 12s infinite; transform-box: fill-box; transform-origin: center; }
+    @keyframes flow { to { stroke-dashoffset: -24; } }
+    .flow { stroke-dasharray: 5 7; animation: flow 1.6s linear infinite; }
+    @media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
+  </style>
+
+  <rect width="960" height="680" rx="20" fill="#0f1420"/>
+  <rect x="1" y="1" width="958" height="678" rx="19" fill="none" stroke="#232c3f"/>
+  <text x="40" y="52" font-size="28" font-weight="800">Two layers, one application</text>
+  <text x="40" y="78" font-size="15" class="muted">Compose for local review · Helmfile releases for the cluster · dashed = external, not in this repo</text>
+  <g font-size="12" font-weight="700">
+    <rect x="700" y="34" width="112" height="24" rx="12" fill="#1d2536" stroke="#8b96ad"/><text x="756" y="50" text-anchor="middle" class="mono" style="fill:#e6ebf5">compose ×3</text>
+    <rect x="818" y="34" width="112" height="24" rx="12" fill="#10283a" stroke="#3ec7ff"/><text x="874" y="50" text-anchor="middle" style="fill:#a8e4ff">releases ×3</text>
+  </g>
+
+  <!-- ============ LOCAL ============ -->
+  <text x="40" y="122" font-size="11" font-weight="700" class="muted" letter-spacing=".1em">LOCAL STACK · docker compose up</text>
+  <rect x="30" y="132" width="900" height="144" rx="16" fill="#161d2b" stroke="#2c3750"/>
+  <g class="t0">
+    <rect x="50" y="146" width="270" height="80" rx="12" fill="#ff8a1f" fill-opacity=".12" stroke="#ff8a1f" stroke-opacity=".7"/>
+    <text x="64" y="172" font-size="14" font-weight="700">app <tspan class="muted" font-weight="400">:8080</tspan></text>
+    <text x="64" y="192" font-size="11" class="mono" style="fill:#ffc48a">java-mysql-public:local</text>
+    <text x="64" y="210" font-size="11" class="muted">JDBC · DB_USER · DB_PWD</text>
+  </g>
+  <g class="t1">
+    <rect x="345" y="146" width="270" height="80" rx="12" fill="#3ddc84" fill-opacity=".12" stroke="#3ddc84" stroke-opacity=".7"/>
+    <text x="359" y="172" font-size="14" font-weight="700">mysql <tspan class="muted" font-weight="400">:3306</tspan></text>
+    <text x="359" y="192" font-size="11" class="mono" style="fill:#9ff0c4">mysql:9.7.2 · mysql-data</text>
+    <text x="359" y="210" font-size="11" class="muted">healthy before app starts</text>
+  </g>
+  <g class="t2">
+    <rect x="640" y="146" width="270" height="80" rx="12" fill="#3ec7ff" fill-opacity=".12" stroke="#3ec7ff" stroke-opacity=".7"/>
+    <text x="654" y="172" font-size="14" font-weight="700">phpmyadmin <tspan class="muted" font-weight="400">:8085</tspan></text>
+    <text x="654" y="192" font-size="11" class="mono" style="fill:#a8e4ff">phpmyadmin:5.2</text>
+    <text x="654" y="210" font-size="11" class="muted">PMA_HOST=mysql</text>
+  </g>
+  <line class="flow" x1="320" y1="186" x2="345" y2="186" stroke="#ff8a1f" stroke-width="2.5"/>
+  <polygon points="345,180 355,186 345,192" fill="#ff8a1f"/>
+  <line class="flow" x1="640" y1="186" x2="615" y2="186" stroke="#3ec7ff" stroke-width="2.5"/>
+  <polygon points="615,180 605,186 615,192" fill="#3ec7ff"/>
+  <text x="50" y="258" font-size="12" class="muted">One command brings up app + database + admin UI · data persists in the <tspan class="mono">mysql-data</tspan> volume · <tspan class="mono">.env</tspan> stays uncommitted</text>
+
+  <!-- ============ CLUSTER ============ -->
+  <text x="40" y="306" font-size="11" font-weight="700" class="muted" letter-spacing=".1em">MANAGED KUBERNETES · namespace default · helmfile</text>
+  <rect x="30" y="316" width="900" height="286" rx="16" fill="#161d2b" stroke="#2c3750"/>
+
+  <g class="t3">
+    <rect x="50" y="330" width="190" height="64" rx="12" fill="none" stroke="#8b96ad" stroke-dasharray="6 5" stroke-opacity=".8"/>
+    <text x="64" y="356" font-size="14" font-weight="700">ingress-nginx</text>
+    <text x="64" y="376" font-size="11" class="muted">external · class nginx</text>
+  </g>
+  <g class="t4">
+    <rect x="270" y="330" width="360" height="64" rx="12" fill="#ff8a1f" fill-opacity=".12" stroke="#ff8a1f" stroke-opacity=".7"/>
+    <text x="284" y="356" font-size="14" font-weight="700">myapp <tspan class="muted" font-weight="400">×3 replicas</tspan></text>
+    <text x="284" y="376" font-size="11" class="mono" style="fill:#ffc48a">Deployment · Service :8080 · Ingress</text>
+  </g>
+  <g class="t5">
+    <rect x="650" y="330" width="260" height="64" rx="12" fill="#3ec7ff" fill-opacity=".12" stroke="#3ec7ff" stroke-opacity=".7"/>
+    <text x="664" y="356" font-size="14" font-weight="700">phpmyadmin <tspan class="muted" font-weight="400">×1</tspan></text>
+    <text x="664" y="376" font-size="11" class="mono" style="fill:#a8e4ff">Deployment · Service :8085</text>
+  </g>
+  <line class="flow" x1="240" y1="362" x2="260" y2="362" stroke="#8b96ad" stroke-width="2.5"/>
+  <polygon points="260,356 270,362 260,368" fill="#8b96ad"/>
+  <text x="255" y="350" font-size="10" class="muted" text-anchor="middle">routes</text>
+
+  <g class="t6">
+    <rect x="50" y="410" width="200" height="64" rx="12" fill="none" stroke="#b58cff" stroke-dasharray="6 5" stroke-opacity=".8"/>
+    <text x="64" y="436" font-size="14" font-weight="700">mysql-secret</text>
+    <text x="64" y="456" font-size="11" class="muted">external Secret · 3 keys</text>
+  </g>
+  <g class="t6">
+    <rect x="270" y="410" width="360" height="64" rx="12" fill="#3ddc84" fill-opacity=".12" stroke="#3ddc84" stroke-opacity=".7"/>
+    <text x="284" y="436" font-size="14" font-weight="700">mysql-primary <tspan class="muted" font-weight="400">StatefulSet</tspan></text>
+    <text x="284" y="456" font-size="11" class="mono" style="fill:#9ff0c4">5Gi PVC · existingSecret · Bitnami 14.0.3</text>
+  </g>
+  <g class="t7">
+    <rect x="650" y="410" width="260" height="64" rx="12" fill="#3ddc84" fill-opacity=".07" stroke="#3ddc84" stroke-opacity=".45"/>
+    <text x="664" y="436" font-size="14" font-weight="700">mysql-secondary</text>
+    <text x="664" y="456" font-size="11" class="mono" style="fill:#9ff0c4">StatefulSet · 5Gi PVC · replica</text>
+  </g>
+  <line class="flow" x1="450" y1="394" x2="450" y2="410" stroke="#ff8a1f" stroke-width="2.5"/>
+  <polygon points="444,400 450,410 456,400" fill="#ff8a1f"/>
+  <text x="458" y="406" font-size="10" class="muted">:3306</text>
+  <path class="flow" d="M 780 394 V 402 H 560 V 410" fill="none" stroke="#3ec7ff" stroke-width="2.5"/>
+  <polygon points="554,400 560,410 566,400" fill="#3ec7ff"/>
+  <text x="684" y="396" font-size="10" class="muted">PMA_HOST</text>
+  <line class="flow" x1="250" y1="442" x2="260" y2="442" stroke="#b58cff" stroke-width="2.5"/>
+  <polygon points="260,436 270,442 260,448" fill="#b58cff"/>
+  <line class="flow" x1="540" y1="442" x2="640" y2="442" stroke="#3ddc84" stroke-width="2.5"/>
+  <polygon points="640,436 650,442 640,448" fill="#3ddc84"/>
+  <text x="542" y="434" font-size="10" class="muted">replication</text>
+
+  <rect x="50" y="490" width="860" height="92" rx="12" fill="#1d2536" stroke="#2c3750"/>
+  <text x="64" y="514" font-size="13" font-weight="700">mysql-configmap <tspan class="muted" font-weight="400">rendered by myappchart</tspan></text>
+  <text x="64" y="534" font-size="11.5" class="mono" style="fill:#a8e4ff">DB_NAME=mysqldb · DB_USER=user · DB_SERVER=mysql-primary</text>
+  <text x="64" y="554" font-size="11.5" class="muted">ConfigMap feeds myapp + phpmyadmin · Secret feeds myapp + MySQL · DB schema is not rolled back on failure</text>
+
+  <text x="40" y="632" font-size="13" class="muted">Helmfile: <tspan class="mono">wait · atomic · timeout 300</tspan> · needs myapp,mysql ← phpmyadmin,mysql · createNamespace: false.</text>
+  <text x="40" y="654" font-size="13" class="muted">Jenkins holds only a namespace-scoped Role/RoleBinding in <tspan class="mono">default</tspan> — no cluster-scoped permissions.</text>
+</svg>

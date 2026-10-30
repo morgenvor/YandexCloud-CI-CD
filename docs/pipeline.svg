@@ -1,0 +1,106 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 730" width="960" height="730" role="img" aria-labelledby="t d">
+  <title id="t">Delivery pipeline: from a GitHub push to a verified release</title>
+  <desc id="d">Six stages mirroring the Jenkinsfile. A push triggers Jenkins through a webhook. Jenkins resolves the commit SHA, builds and tests with Gradle, builds and pushes the image to Yandex Container Registry, pins the deployment to the registry digest, deploys with Helmfile using a temporary kubeconfig, then verifies four rollouts and a smoke test against GET /get-data.</desc>
+  <style>
+    text { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; fill: #e6ebf5; }
+    .muted { fill: #8b96ad; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    @keyframes t0 { 0%,2.50% { opacity: 0; transform: scale(.96); } 5.00%,94% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(1); } } .t0 { animation: t0 12s infinite; transform-box: fill-box; transform-origin: left center; }
+    @keyframes t1 { 0%,6.50% { opacity: 0; transform: scale(.96); } 9.00%,94% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(1); } } .t1 { animation: t1 12s infinite; transform-box: fill-box; transform-origin: left center; }
+    @keyframes t2 { 0%,10.50% { opacity: 0; transform: scale(.96); } 13.00%,94% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(1); } } .t2 { animation: t2 12s infinite; transform-box: fill-box; transform-origin: left center; }
+    @keyframes t3 { 0%,14.50% { opacity: 0; transform: scale(.96); } 17.00%,94% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(1); } } .t3 { animation: t3 12s infinite; transform-box: fill-box; transform-origin: left center; }
+    @keyframes t4 { 0%,18.50% { opacity: 0; transform: scale(.96); } 21.00%,94% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(1); } } .t4 { animation: t4 12s infinite; transform-box: fill-box; transform-origin: left center; }
+    @keyframes t5 { 0%,22.50% { opacity: 0; transform: scale(.96); } 25.00%,94% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(1); } } .t5 { animation: t5 12s infinite; transform-box: fill-box; transform-origin: left center; }
+    @keyframes drop { 0% { transform: translateY(0); opacity: 0; } 4% { opacity: 1; } 44% { transform: translateY(498px); opacity: 1; } 46%,100% { transform: translateY(498px); opacity: 0; } }
+    .drop1 { animation: drop 12s linear infinite; }
+    .drop2 { animation: drop 12s linear infinite; animation-delay: 6s; }
+    @keyframes ok { 0%,24.00% { opacity: 0; transform: scale(.4); } 26.50%,94% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(1); } }
+    .ok { animation: ok 12s infinite; transform-box: fill-box; transform-origin: center; }
+    @keyframes foot { 0%,26.00% { opacity: 0; } 28.50%,94% { opacity: 1; } 100% { opacity: 0; } } .foot { animation: foot 12s infinite; }
+    @media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
+  </style>
+
+  <rect width="960" height="730" rx="20" fill="#0f1420"/>
+  <rect x="1" y="1" width="958" height="728" rx="19" fill="none" stroke="#232c3f"/>
+  <text x="40" y="52" font-size="28" font-weight="800">From push to verified release</text>
+  <text x="40" y="78" font-size="15" class="muted">Every step is a stage of the Jenkinsfile · Jenkins + Helmfile · Yandex Managed Kubernetes</text>
+  <g font-size="12" font-weight="700">
+    <rect x="688" y="34" width="86" height="24" rx="12" fill="#1d2536" stroke="#8b96ad"/><text x="731" y="50" text-anchor="middle" class="mono" style="fill:#e6ebf5">Jenkins</text>
+    <rect x="780" y="34" width="150" height="24" rx="12" fill="#10283a" stroke="#3ec7ff"/><text x="855" y="50" text-anchor="middle" style="fill:#a8e4ff">digest-pinned</text>
+  </g>
+
+  <!-- spine -->
+  <line x1="64" y1="120" x2="64" y2="618" stroke="#2c3750" stroke-width="3" stroke-linecap="round"/>
+  <g class="drop1"><circle cx="64" cy="120" r="6" fill="#3ec7ff"/></g>
+  <g class="drop2"><circle cx="64" cy="120" r="6" fill="#ff8a1f"/></g>
+
+  <!-- 01 trigger -->
+  <g class="t0">
+    <circle cx="64" cy="158" r="15" fill="#2d1f10" stroke="#ff8a1f" stroke-width="2.5"/>
+    <text x="64" y="163" text-anchor="middle" font-size="13" font-weight="800" style="fill:#ffc48a">1</text>
+    <rect x="100" y="120" width="830" height="76" rx="12" fill="#ff8a1f" fill-opacity=".12" stroke="#ff8a1f" stroke-opacity=".7"/>
+    <text x="122" y="150" font-size="15" font-weight="700">Trigger — GitHub push → webhook → Jenkins</text>
+    <text x="122" y="172" font-size="12" class="mono" style="fill:#ffc48a">git push · webhook payload · agent any</text>
+    <text x="908" y="150" text-anchor="end" font-size="11" class="muted">push event</text>
+    <text x="908" y="172" text-anchor="end" font-size="11" class="muted mono">disableConcurrentBuilds</text>
+  </g>
+
+  <!-- 02 build -->
+  <g class="t1">
+    <circle cx="64" cy="250" r="15" fill="#0f2318" stroke="#3ddc84" stroke-width="2.5"/>
+    <text x="64" y="255" text-anchor="middle" font-size="13" font-weight="800" style="fill:#9ff0c4">2</text>
+    <rect x="100" y="212" width="830" height="76" rx="12" fill="#3ddc84" fill-opacity=".12" stroke="#3ddc84" stroke-opacity=".7"/>
+    <text x="122" y="242" font-size="15" font-weight="700">Build — SHA resolved, JAR built and tested</text>
+    <text x="122" y="264" font-size="12" class="mono" style="fill:#9ff0c4">git rev-parse HEAD → IMAGE_TAG · ./gradlew clean build</text>
+    <text x="908" y="242" text-anchor="end" font-size="11" class="muted">Prepare Build · Build JAR</text>
+    <text x="908" y="264" text-anchor="end" font-size="11" class="muted mono">timeout 30 min</text>
+  </g>
+
+  <!-- 03 image -->
+  <g class="t2">
+    <circle cx="64" cy="342" r="15" fill="#10283a" stroke="#3ec7ff" stroke-width="2.5"/>
+    <text x="64" y="347" text-anchor="middle" font-size="13" font-weight="800" style="fill:#a8e4ff">3</text>
+    <rect x="100" y="304" width="830" height="76" rx="12" fill="#3ec7ff" fill-opacity=".12" stroke="#3ec7ff" stroke-opacity=".7"/>
+    <text x="122" y="334" font-size="15" font-weight="700">Image — built and pushed, tagged with the SHA</text>
+    <text x="122" y="356" font-size="12" class="mono" style="fill:#a8e4ff">docker build -t $APP_IMAGE:$SHA · docker push</text>
+    <text x="908" y="334" text-anchor="end" font-size="11" class="muted">Build and push Image</text>
+    <text x="908" y="356" text-anchor="end" font-size="11" class="muted mono">cr.yandex · gradle-app</text>
+  </g>
+
+  <!-- 04 digest -->
+  <g class="t3">
+    <circle cx="64" cy="434" r="15" fill="#221a33" stroke="#b58cff" stroke-width="2.5"/>
+    <text x="64" y="439" text-anchor="middle" font-size="13" font-weight="800" style="fill:#d9c6ff">4</text>
+    <rect x="100" y="396" width="830" height="76" rx="12" fill="#b58cff" fill-opacity=".12" stroke="#b58cff" stroke-opacity=".7"/>
+    <text x="122" y="426" font-size="15" font-weight="700">Digest — registry digest read back and pinned</text>
+    <text x="122" y="448" font-size="12" class="mono" style="fill:#d9c6ff">docker inspect → .RepoDigests → sha256:… · deploy by digest, not tag</text>
+    <text x="908" y="426" text-anchor="end" font-size="11" class="muted">immutable release</text>
+    <text x="908" y="448" text-anchor="end" font-size="11" class="muted mono">fail if empty</text>
+  </g>
+
+  <!-- 05 deploy -->
+  <g class="t4">
+    <circle cx="64" cy="526" r="15" fill="#2d2410" stroke="#ffb02e" stroke-width="2.5"/>
+    <text x="64" y="531" text-anchor="middle" font-size="13" font-weight="800" style="fill:#ffd48a">5</text>
+    <rect x="100" y="488" width="830" height="76" rx="12" fill="#ffb02e" fill-opacity=".12" stroke="#ffb02e" stroke-opacity=".7"/>
+    <text x="122" y="518" font-size="15" font-weight="700">Deploy — temp kubeconfig, Helmfile applies 3 releases</text>
+    <text x="122" y="540" font-size="12" class="mono" style="fill:#ffd48a">yc get-credentials · helmfile lint, template · apply --wait (rm kubeconfig after)</text>
+    <text x="908" y="518" text-anchor="end" font-size="11" class="muted">Deploy</text>
+    <text x="908" y="540" text-anchor="end" font-size="11" class="muted mono">atomic · timeout 300</text>
+  </g>
+
+  <!-- 06 verify -->
+  <g class="t5">
+    <circle cx="64" cy="618" r="15" fill="#0f2318" stroke="#3ddc84" stroke-width="2.5"/>
+    <text x="64" y="623" text-anchor="middle" font-size="13" font-weight="800" style="fill:#9ff0c4">6</text>
+    <rect x="100" y="580" width="830" height="76" rx="12" fill="#3ddc84" fill-opacity=".12" stroke="#3ddc84" stroke-opacity=".7"/>
+    <text x="122" y="610" font-size="15" font-weight="700">Verify — 4 rollouts green, smoke test asserts the body</text>
+    <text x="122" y="632" font-size="12" class="mono" style="fill:#9ff0c4">rollout status myapp, phpmyadmin, mysql ×2 · GET /get-data → 200 · grep Sarah</text>
+    <g class="ok"><text x="908" y="620" text-anchor="end" font-size="20" font-weight="800" style="fill:#3ddc84">✓ released</text></g>
+  </g>
+
+  <g class="foot">
+    <text x="40" y="690" font-size="13" class="muted">Images are tagged with the full commit SHA and deployed by digest — a mutable tag never decides what runs.</text>
+    <text x="40" y="712" font-size="13" class="muted">Cloud infra is decommissioned; the same app + MySQL still start locally with <tspan class="mono" style="fill:#a8e4ff">docker compose up</tspan>.</text>
+  </g>
+</svg>
